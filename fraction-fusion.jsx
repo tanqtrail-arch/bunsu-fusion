@@ -1,5 +1,29 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 
+// ─── TRAIL ALT・ランキング連携 ───────────────────────────
+const GAS_URL     = 'https://script.google.com/macros/s/AKfycbzKUyiUHIMp9JRFX0LEa88plEoavkbrjTQ5oHf9T-FDd6b4fhqfTCBVBy5rWUZPUQbY/exec';
+const GAME_ID     = 1;
+const GAME_NAME   = '分数融合';
+const SCORE_LABEL = '点';
+const ALT_AMOUNT  = 10;
+const TRAIL_PLAYER = new URLSearchParams(location.search).get('player') || null;
+
+async function sendResult(score) {
+  if (!TRAIL_PLAYER) return;
+  const opt = { method:'POST', redirect:'follow', headers:{'Content-Type':'text/plain'} };
+  await fetch(GAS_URL, { ...opt, body: JSON.stringify({
+    action: 'saveRanking',
+    gameId: GAME_ID, gameName: GAME_NAME,
+    player: TRAIL_PLAYER, score: score, scoreLabel: SCORE_LABEL
+  })});
+  await fetch(GAS_URL, { ...opt, body: JSON.stringify({
+    action: 'addCoin',
+    player: TRAIL_PLAYER, gameId: GAME_ID,
+    gameName: GAME_NAME, amount: ALT_AMOUNT
+  })});
+}
+// ─────────────────────────────────────────────────────────
+
 /* ---- Math ---- */
 function gcd(a, b) { a = Math.abs(a); b = Math.abs(b); while (b) { var t = b; b = a % b; a = t; } return a; }
 function lcm(a, b) { return Math.abs(a * b) / gcd(a, b); }
@@ -212,6 +236,8 @@ function ResultScr(props) {
         }, "*");
       }
     } catch (e) { /* ignore */ }
+    /* TRAIL ALT・ランキング: スコアを送信 */
+    sendResult(sc.total);
   }, []);
 
   return (
