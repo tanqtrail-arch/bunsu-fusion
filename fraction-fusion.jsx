@@ -305,13 +305,13 @@ export default function FractionFusion() {
   }, [cards]);
 
   var deliverOne = useCallback(function() {
-    var ones = cards.filter(function(c) { return isS1(c); });
+    var ones = cards.filter(function(c) { return isOne(c); });
     if (ones.length === 0) return;
     saveH();
     ones.forEach(function(dc) {
       setDel(function(p) { return p.concat([{ depth: dc.depth }]); });
     });
-    var rem = cards.filter(function(c) { return !isS1(c); });
+    var rem = cards.filter(function(c) { return !isOne(c); });
     rem.sort(function(a, b) { return a.slot - b.slot; });
     rem.forEach(function(c, i) { c.slot = i; });
     setCards(rem.slice());
@@ -447,8 +447,8 @@ export default function FractionFusion() {
   var gridRows = Math.max(1, Math.ceil(cards.length / gridCols));
   var cardFont = cards.length <= 2 ? 32 : cards.length <= 4 ? 28 : cards.length <= 9 ? 24 : 18;
   var finishActive = del.length > 0;
-  var hasOnes = cards.some(function(c) { return isS1(c); });
-  var oneCount = cards.filter(function(c) { return isS1(c); }).length;
+  var hasOnes = cards.some(function(c) { return isOne(c); });
+  var oneCount = cards.filter(function(c) { return isOne(c); }).length;
 
   /* ======== TITLE SCREEN ======== */
   if (rules) {
@@ -508,8 +508,8 @@ export default function FractionFusion() {
             var isDg = dRender && dRender.id === card.id && !dragSp;
             var isHv = hovId === card.id;
             var col = getCol(card.id);
-            var c1 = isS1(card);
-            var cu1 = isOne(card) && !c1;
+            var c1 = isOne(card);
+            var cu1 = false;
             var dx = isDg ? dRender.dx : 0;
             var dy = isDg ? dRender.dy : 0;
             var isLast = cards.length === 1;
