@@ -15,7 +15,6 @@
 </head>
 <body>
 <div id="root"></div>
-<script src="trail-nav.js"></script> <!-- 🆕 TRAIL共通ナビ -->
 <script type="text/babel">
 var useState = React.useState;
 var useCallback = React.useCallback;
@@ -213,7 +212,6 @@ function ResultScr(props) {
   var sc = calcSc(del, cards, diff);
   var rank = getRank(sc.total);
   var cfg = DIFFICULTIES[diff] || DIFFICULTIES.normal;
-  /* TRAIL連携: postMessageはデプロイ後に有効化 */
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 900, background: "rgba(0,0,0,.6)", backdropFilter: "blur(10px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 12 }}>
       <div style={{ background: "linear-gradient(145deg,#1a1a2e,#16213e)", borderRadius: 22, padding: "24px 20px", textAlign: "center", boxShadow: "0 30px 80px rgba(0,0,0,.6)", border: sc.perf ? "2px solid rgba(255,215,0,.3)" : "2px solid rgba(255,255,255,.08)", animation: "fadeIn .5s ease-out", maxWidth: 380, width: "100%" }}>
@@ -389,17 +387,12 @@ function FractionFusion() {
 
   var finish = useCallback(function() {
     setResult(true); setCMenu(null);
-    // 🆕 ALT付与＆送信
-    if(typeof TrailNav!=='undefined'){
-      var sc2=calcSc(del,cards,diff||'normal');var rk2=getRank(sc2.total);
-      var altAmt=sc2.perf?5:sc2.total>=4500?4:sc2.total>=3000?3:2;
-      TrailNav.earnAlt(altAmt,'クリア');TrailNav.flushAltWithRetry();TrailNav.showNav();
-    }
+    var sc2=calcSc(del,cards,diff||'normal');
+    DarwinBridge.stageClear({score: sc2.total, correct: del.length, total: (DIFFICULTIES[diff]||DIFFICULTIES.normal).cardCount});
   }, [del,cards,diff]);
   var startGame = useCallback(function(d) {
     setDiff(d); setCards(makePuzzle(d)); setRules(false); setResult(false);
     setDel([]); setHist([]); setHMeta([]); setFormula(null); setSpUses(3);
-    if(typeof TrailNav!=='undefined')TrailNav.hideNav(); // 🆕 ゲーム中ナビ非表示
   }, []);
   var retry = useCallback(function() {
     if (!diff) return;
@@ -409,7 +402,6 @@ function FractionFusion() {
   var backToMenu = useCallback(function() {
     setDiff(null); setRules(true); setResult(false); setCards([]); setDel([]);
     setHist([]); setHMeta([]); setFormula(null); setSpUses(3);
-    if(typeof TrailNav!=='undefined')TrailNav.showNav(); // 🆕 メニューでナビ表示
   }, []);
 
   useEffect(function() {
@@ -418,7 +410,6 @@ function FractionFusion() {
     return function() { window.removeEventListener("keydown", h); };
   }, []);
 
-  /* TRAIL連携: URLパラメータ自動開始はデプロイ後に有効化 */
 
   var gridCols = cards.length <= 2 ? 2 : cards.length <= 4 ? 2 : cards.length <= 9 ? 3 : 5;
   var gridRows = Math.max(1, Math.ceil(cards.length / gridCols));
@@ -614,25 +605,14 @@ function FractionFusion() {
 }
 
 
-// 🆕 TRAIL共通ナビ用: ゲームホームに戻る
 window.showGameHome=function(){
-  if(confirm('ゲームを中断してホームに戻りますか？')){
-    if(typeof TrailNav!=='undefined'){TrailNav.flushAltWithRetry();TrailNav.showNav();}
-    location.reload();
-  }
+  DarwinBridge.exit();
 };
 
 ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(FractionFusion));
 </script>
-<!-- ===== 🆕 TRAIL共通ナビ ===== -->
 <script>
-TrailNav.init({
-  gameName: '分数融合',
-  gameEmoji: '🔬',
-  gameHomeId: 'root',
-  tgp32Url: 'https://trail-game-pro-3-2.onrender.com',
-  apiBase:  'https://trail-game-pro-3-2.onrender.com/api',
-});
+DarwinBridge.ready();
 </script>
 </body>
 </html>
