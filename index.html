@@ -12,6 +12,24 @@
 <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script>
+const GAS_URL='https://script.google.com/macros/s/AKfycbzKUyiUHIMp9JRFX0LEa88plEoavkbrjTQ5oHf9T-FDd6b4fhqfTCBVBy5rWUZPUQbY/exec';
+const urlParams=new URLSearchParams(window.location.search);
+const PLAYER=urlParams.get('player')||'';
+async function sendReward(amount,score){
+  if(!PLAYER||!GAS_URL)return;
+  try{
+    const res=await fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify({action:'gameReward',player:PLAYER,
+        gameId:urlParams.get('gameId')||'',gameName:urlParams.get('gameName')||document.title,
+        amount:amount,score:score})});
+    const data=await res.json();
+    if(data.ok){const t=document.createElement('div');t.textContent='🎉 '+amount+' ALT ゲット！';
+      t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1e293b;color:#fff;padding:12px 20px;border-radius:10px;font-size:.85rem;font-weight:600;z-index:9999;pointer-events:none';
+      document.body.appendChild(t);setTimeout(()=>t.remove(),3500)}
+  }catch(e){console.error('ポイント送信失敗:',e)}
+}
+</script>
 </head>
 <body>
 <div id="root"></div>
@@ -389,6 +407,7 @@ function FractionFusion() {
     setResult(true); setCMenu(null);
     var sc2=calcSc(del,cards,diff||'normal');
     DarwinBridge.stageClear({score: sc2.total, correct: del.length, total: (DIFFICULTIES[diff]||DIFFICULTIES.normal).cardCount});
+    sendReward(50, sc2.total);
   }, [del,cards,diff]);
   var startGame = useCallback(function(d) {
     setDiff(d); setCards(makePuzzle(d)); setRules(false); setResult(false);
